@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTM Food - Kantin Universitas Teknologi Mataram</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                            700: '#be123c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Smooth scrolling */
+        html { scroll-behavior: smooth; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Floating WA Button */
+        .floating-wa {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 50;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Print Media Query */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-receipt, #print-receipt * {
+                visibility: visible;
+            }
+            #print-receipt {
+                display: block !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white;
+                margin: 0;
+            }
+            /* Hide non-essential elements during print */
+            nav, .floating-wa, #cart-modal, #wa-chat-box, #cart-overlay {
+                display: none !important;
+            }
+        }
+
+        /* Animation for WA Box */
+        .slide-up {
+            animation: slideUp 0.3s ease-out forwards;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hero Background */
+        .hero-pattern {
+            background-color: #ffffff;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='#f43f5e' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-40 top-0 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer" onclick="window.scrollTo(0,0)">
+                    <div class="w-10 h-10 bg-brand-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-500/30">
+                        <i class="fas fa-utensils text-xl"></i>
+                    </div>
+                    <span class="font-bold text-xl tracking-tight text-gray-900">UTM <span class="text-brand-600">Food</span></span>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-8">
+                    <a href="#menu-makanan" class="text-gray-600 hover:text-brand-600 font-medium transition">Makanan</a>
+                    <a href="#menu-minuman" class="text-gray-600 hover:text-brand-600 font-medium transition">Minuman</a>
+                    <a href="#paket-langganan" class="text-gray-600 hover:text-brand-600 font-medium transition">Paket Langganan</a>
+                </div>
+
+                <!-- Cart Icon -->
+                <button onclick="toggleCart()" class="relative p-2 text-gray-600 hover:text-brand-600 transition bg-gray-50 hover:bg-brand-50 rounded-full">
+                    <i class="fas fa-shopping-cart text-xl"></i>
+                    <span id="cart-badge" class="absolute top-0 right-0 -mt-1 -mr-1 flex items-center justify-center w-5 h-5 bg-brand-600 text-white text-xs font-bold rounded-full border-2 border-white hidden">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-28 pb-16 px-4 hero-pattern min-h-[60vh] flex items-center">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-10">
+            <div class="flex-1 text-center md:text-left">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 text-brand-600 text-sm font-semibold mb-6">
+                    <i class="fas fa-fire"></i> Kantin Resmi UTM
+                </div>
+                <h1 class="text-4xl md:text-6xl font-extrabold text-gray-900 leading-tight mb-4">
+                    Lapar di Kampus? <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 to-orange-400">Pesan Sekarang!</span>
+                </h1>
+                <p class="text-lg text-gray-600 mb-8 max-w-lg mx-auto md:mx-0">
+                    Nikmati kemudahan memesan makanan dan minuman tanpa harus antre. Tinggal klik, bayar, dan pesanan akan diantar ke mejamu atau siap diambil.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                    <a href="#menu-makanan" class="px-8 py-3.5 bg-brand-600 text-white font-bold rounded-xl shadow-lg shadow-brand-500/30 hover:bg-brand-700 hover:shadow-brand-500/50 transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-search"></i> Lihat Menu
+                    </a>
+                    <a href="#paket-langganan" class="px-8 py-3.5 bg-white text-brand-600 font-bold rounded-xl border border-brand-200 hover:bg-brand-50 transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-crown"></i> Cek Paket
+                    </a>
+                </div>
+            </div>
+            <div class="flex-1 w-full max-w-md relative">
+                <div class="absolute inset-0 bg-gradient-to-tr from-brand-200 to-orange-100 rounded-full blur-3xl opacity-50"></div>
+                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=800&auto=format&fit=crop" alt="Makanan Enak" class="relative z-10 w-full h-auto rounded-2xl shadow-2xl object-cover aspect-square border-4 border-white transform rotate-2 hover:rotate-0 transition duration-500">
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content: Menu Makanan -->
+    <main class="max-w-7xl mx-auto px-4 py-12">
+        <section id="menu-makanan" class="mb-16">
+            <div class="flex items-center gap-3 mb-8">
+                <i class="fas fa-hamburger text-2xl text-brand-500"></i>
+                <h2 class="text-3xl font-bold text-gray-900">Menu Makanan</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="food-container">
+                <!-- Food Items Injected by JS -->
+            </div>
+        </section>
+
+        <!-- Menu Minuman -->
+        <section id="menu-minuman" class="mb-16">
+            <div class="flex items-center gap-3 mb-8">
+                <i class="fas fa-glass-water text-2xl text-blue-500"></i>
+                <h2 class="text-3xl font-bold text-gray-900">Menu Minuman</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="drink-container">
+                <!-- Drink Items Injected by JS -->
+            </div>
+        </section>
+
+        <!-- Paket Langganan -->
+        <section id="paket-langganan" class="mb-16 bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Paket Makan Hemat Anak Kos</h2>
+                <p class="text-gray-500 max-w-2xl mx-auto">Berlangganan makan bulanan di kantin UTM. Lebih hemat, anti pusing mikir mau makan apa tiap hari.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <!-- Silver -->
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-200 relative overflow-hidden group hover:border-gray-400 transition">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-gray-200 rounded-bl-full flex items-start justify-end p-3 text-gray-500">
+                        <i class="fas fa-medal text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Silver</h3>
+                    <div class="text-3xl font-extrabold text-gray-900 mb-1">Rp 300<span class="text-sm text-gray-500 font-normal">.000 / bln</span></div>
+                    <p class="text-sm text-gray-500 mb-6">Cocok untuk ngemil ringan</p>
+                    <ul class="space-y-3 mb-8 text-sm text-gray-600">
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> 1x Makan per hari (Senin-Jumat)</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Free Es Teh/Hangat</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-times text-gray-300"></i> Pilihan menu terbatas (Ayam/Telur)</li>
+                    </ul>
+                    <button onclick="orderPackage('Silver')" class="w-full py-2.5 rounded-lg border-2 border-gray-800 text-gray-800 font-bold hover:bg-gray-800 hover:text-white transition">Pilih Silver</button>
+                </div>
+
+                <!-- Gold -->
+                <div class="bg-[#fff9e6] rounded-2xl p-6 border border-yellow-200 relative overflow-hidden group hover:shadow-lg transition">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-yellow-400 rounded-bl-full flex items-start justify-end p-3 text-yellow-800">
+                        <i class="fas fa-award text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-yellow-800 mb-2">Gold</h3>
+                    <div class="text-3xl font-extrabold text-gray-900 mb-1">Rp 550<span class="text-sm text-gray-500 font-normal">.000 / bln</span></div>
+                    <p class="text-sm text-yellow-700 mb-6 opacity-80">Paling Populer</p>
+                    <ul class="space-y-3 mb-8 text-sm text-gray-700">
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> 2x Makan per hari (Senin-Jumat)</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Free Semua Minuman Dingin</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Bebas pilih menu reguler</li>
+                    </ul>
+                    <button onclick="orderPackage('Gold')" class="w-full py-2.5 rounded-lg bg-yellow-400 text-yellow-900 font-bold hover:bg-yellow-500 transition shadow-md">Pilih Gold</button>
+                </div>
+
+                <!-- Platinum -->
+                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 relative overflow-hidden group hover:shadow-xl transition">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-slate-600 rounded-bl-full flex items-start justify-end p-3 text-white">
+                        <i class="fas fa-gem text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Platinum</h3>
+                    <div class="text-3xl font-extrabold text-white mb-1">Rp 800<span class="text-sm text-slate-400 font-normal">.000 / bln</span></div>
+                    <p class="text-sm text-slate-400 mb-6">Makan puas tiap hari</p>
+                    <ul class="space-y-3 mb-8 text-sm text-slate-300">
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-brand-400"></i> 3x Makan per hari (Senin-Sabtu)</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-brand-400"></i> Free Semua Minuman</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-brand-400"></i> Akses menu spesial/baru</li>
+                    </ul>
+                    <button onclick="orderPackage('Platinum')" class="w-full py-2.5 rounded-lg bg-white text-slate-900 font-bold hover:bg-gray-100 transition">Pilih Platinum</button>
+                </div>
+
+                <!-- Diamond -->
+                <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 border border-indigo-400 relative overflow-hidden group hover:shadow-2xl transition shadow-lg shadow-indigo-500/20">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-white/20 rounded-bl-full flex items-start justify-end p-3 text-white backdrop-blur-sm">
+                        <i class="fas fa-crown text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Diamond</h3>
+                    <div class="text-3xl font-extrabold text-white mb-1">Rp 1.2<span class="text-sm text-indigo-200 font-normal">jt / bln</span></div>
+                    <p class="text-sm text-indigo-200 mb-6">Sultan Kampus</p>
+                    <ul class="space-y-3 mb-8 text-sm text-white">
+                        <li class="flex items-center gap-2"><i class="fas fa-star text-yellow-300"></i> Unlimited Makan (Setiap Hari)</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-star text-yellow-300"></i> Unlimited Minuman & Snack</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-star text-yellow-300"></i> Prioritas antrean diantar ke kelas</li>
+                    </ul>
+                    <button onclick="orderPackage('Diamond')" class="w-full py-2.5 rounded-lg bg-white text-indigo-600 font-bold hover:bg-gray-50 transition shadow-lg">Pilih Diamond</button>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- Cart Modal / Sidebar -->
+    <div id="cart-overlay" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 hidden transition-opacity" onclick="toggleCart()"></div>
+    <div id="cart-modal" class="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white z-50 transform translate-x-full transition-transform duration-300 flex flex-col shadow-2xl">
+        <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+            <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <i class="fas fa-shopping-basket text-brand-500"></i> Keranjang Anda
+            </h3>
+            <button onclick="toggleCart()" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600 transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div id="cart-items-container" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+            <!-- Cart items injected here -->
+            <div id="empty-cart-msg" class="text-center text-gray-500 mt-10">
+                <i class="fas fa-basket-shopping text-4xl mb-3 text-gray-300"></i>
+                <p>Keranjang masih kosong</p>
+            </div>
+        </div>
+
+        <div class="p-4 border-t bg-white">
+            <div class="mb-4">
+                <label for="nomor-meja" class="block text-sm font-semibold text-gray-700 mb-1">Nomor Meja</label>
+                <input type="text" id="nomor-meja" placeholder="Cth: 12 (Kosongkan jika dibawa pulang)" class="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 bg-gray-50">
+            </div>
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-gray-600">Total Pembayaran</span>
+                <span id="cart-total" class="text-xl font-bold text-gray-900">Rp 0</span>
+            </div>
+            <div class="space-y-2">
+                <button onclick="checkoutToWhatsApp()" class="w-full py-3 bg-brand-600 text-white rounded-xl font-bold text-lg hover:bg-brand-700 transition flex items-center justify-center gap-2 shadow-lg shadow-brand-500/30">
+                    <i class="fab fa-whatsapp text-xl"></i> Pesan Sekarang
+                </button>
+                <div id="btn-print-group" class="flex gap-2 hidden">
+                    <button onclick="printReceipt()" class="flex-1 py-3 bg-white border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                        <i class="fas fa-print"></i> Cetak
+                    </button>
+                    <button onclick="downloadReceipt()" class="flex-1 py-3 bg-white border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                        <i class="fas fa-download"></i> Download PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Printable Receipt Area (Hidden entirely except when printing) -->
+    <div id="print-receipt" class="hidden" style="font-family: 'Courier New', Courier, monospace; width: 300px; margin: 0 auto; color: black; background: white; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 15px;">
+            <h2 style="margin: 0; font-size: 20px; font-weight: bold;">UTM FOOD</h2>
+            <p style="margin: 3px 0; font-size: 12px;">Kantin Univ. Teknologi Mataram</p>
+            <p style="margin: 0; font-size: 12px;">Jl. Pendidikan, Mataram</p>
+            <p style="margin: 0; font-size: 12px;">Telp: +62 819-3493-1153</p>
+        </div>
+        <div style="border-top: 1px dashed #000; margin-bottom: 10px;"></div>
+        <div style="margin-bottom: 10px; font-size: 12px;">
+            <p style="margin: 2px 0;">Tgl  : <span id="print-date"></span></p>
+            <p style="margin: 2px 0;">No   : <span id="print-order-id"></span></p>
+            <p style="margin: 2px 0;">Meja : <span id="print-meja">-</span></p>
+        </div>
+        <div style="border-top: 1px dashed #000; margin-bottom: 10px;"></div>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 12px;">
+            <thead>
+                <tr>
+                    <th style="text-align: left; padding-bottom: 5px;">Item</th>
+                    <th style="text-align: center; padding-bottom: 5px;">Qty</th>
+                    <th style="text-align: right; padding-bottom: 5px;">Harga</th>
+                </tr>
+            </thead>
+            <tbody id="print-items-body">
+                <!-- Print items injected here -->
+            </tbody>
+        </table>
+        <div style="border-top: 1px dashed #000; margin-bottom: 10px;"></div>
+        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 14px;">
+            <span>TOTAL</span>
+            <span id="print-total-price">Rp 0</span>
+        </div>
+        <div style="border-top: 1px dashed #000; margin-top: 10px; margin-bottom: 15px;"></div>
+        <div style="text-align: center; font-size: 11px;">
+            <p style="margin: 2px 0;">Terima Kasih Atas Pesanan Anda!</p>
+            <p style="margin: 2px 0;">Powered by UTM Food</p>
+        </div>
+    </div>
+
+    <!-- Floating WhatsApp Widget -->
+    <button onclick="toggleWaBox()" class="floating-wa w-14 h-14 bg-green-500 rounded-full text-white flex items-center justify-center text-3xl shadow-lg shadow-green-500/40 hover:bg-green-600 transition z-50">
+        <i class="fab fa-whatsapp"></i>
+    </button>
+
+    <!-- WA Chat Box -->
+    <div id="wa-chat-box" class="fixed bottom-24 right-6 w-[320px] bg-white rounded-2xl shadow-2xl z-50 hidden border border-gray-100 overflow-hidden">
+        <div class="bg-green-500 p-4 text-white flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold">Admin Kantin UTM</h4>
+                    <p class="text-xs text-green-100">Online | Balas cepat</p>
+                </div>
+            </div>
+            <button onclick="toggleWaBox()" class="text-white hover:bg-white/20 p-1 rounded transition"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="p-4 bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-cover h-40 overflow-y-auto">
+            <div class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm text-sm text-gray-700 w-[85%] inline-block mb-2">
+                Halo! 👋 Ada yang bisa kami bantu terkait pesanan atau menu di Kantin UTM?
+            </div>
+        </div>
+        <div class="p-3 bg-white border-t flex gap-2">
+            <textarea id="wa-message-input" rows="1" class="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:border-green-500 bg-gray-50 resize-none" placeholder="Ketik pesan..."></textarea>
+            <button onclick="sendCustomWaMessage()" class="w-10 h-10 bg-green-500 rounded-full text-white flex items-center justify-center hover:bg-green-600 transition flex-shrink-0">
+                <i class="fas fa-paper-plane text-sm ml-[-2px]"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-400 py-8 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <div class="text-2xl font-bold text-white mb-2">UTM <span class="text-brand-500">Food</span></div>
+            <p class="mb-4">Universitas Teknologi Mataram<br>Jl. Pendidikan, Mataram</p>
+            <p>&copy; 2024 Kantin UTM. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Data Makanan (Menggunakan gambar asli dari Unsplash)
+        const foods = [
+            { id: 'f1', name: 'Nasi Goreng Spesial', price: 15000, img: 'https://images.unsplash.com/photo-1603048297172-c92544798d5e?q=80&w=400&auto=format&fit=crop', desc: 'Dengan telur mata sapi dan ayam suwir' },
+            { id: 'f2', name: 'Ayam Geprek Sambal Korek', price: 18000, img: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=400&auto=format&fit=crop', desc: 'Pedas nampol + Nasi putih + Lalapan' },
+            { id: 'f3', name: 'Mie Nyemek Pedas', price: 12000, img: 'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?q=80&w=400&auto=format&fit=crop', desc: 'Mie instan rebus bumbu spesial kental' },
+            { id: 'f4', name: 'Soto Ayam Lamongan', price: 15000, img: 'https://images.unsplash.com/photo-1572656631137-7935297eff55?q=80&w=400&auto=format&fit=crop', desc: 'Segar dengan koya khas' },
+            { id: 'f5', name: 'Bakso Urat Kuah Mercon', price: 13000, img: 'https://images.unsplash.com/photo-1588168333986-5078d3ae3976?q=80&w=400&auto=format&fit=crop', desc: 'Bakso daging sapi asli kenyal' },
+            { id: 'f6', name: 'Nasi Campur Ayam Bali', price: 20000, img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=400&auto=format&fit=crop', desc: 'Ayam betutu, sate lilit, sayur urap' },
+            { id: 'f7', name: 'Gado-Gado Siram', price: 12000, img: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?q=80&w=400&auto=format&fit=crop', desc: 'Sayur segar bumbu kacang kental' },
+            { id: 'f8', name: 'Sate Ayam Madura', price: 15000, img: 'https://images.unsplash.com/photo-1555126634-323283e090fa?q=80&w=400&auto=format&fit=crop', desc: '10 Tusuk + Lontong/Nasi' }
+        ];
+
+        // Data Minuman
+        const drinks = [
+            { id: 'd1', name: 'Es Teh Manis Jumbo', price: 4000, img: 'https://images.unsplash.com/photo-1499638673689-79a0b5115d87?q=80&w=400&auto=format&fit=crop', desc: 'Pelepas dahaga porsi besar' },
+            { id: 'd2', name: 'Es Jeruk Peras Asli', price: 6000, img: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?q=80&w=400&auto=format&fit=crop', desc: 'Kaya vitamin C, segar' },
+            { id: 'd3', name: 'Kopi Susu Gula Aren', price: 10000, img: 'https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=400&auto=format&fit=crop', desc: 'Kopi kekinian buat nemenin nugas' },
+            { id: 'd4', name: 'Es Cincau Susu', price: 8000, img: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=400&auto=format&fit=crop', desc: 'Cincau hijau segar + susu kental manis' }
+        ];
+
+        // Config WhatsApp
+        const ADMIN_PHONE = "6281934931153"; // Dikonversi ke format internasional tanpa +
+        const CAMPUS_NAME = "Universitas Teknologi Mataram";
+
+        // State Cart
+        let cart = [];
+
+        // Utility: Format Rupiah
+        function formatRp(angka) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+        }
+
+        // Render Products
+        function renderProducts() {
+            const foodEl = document.getElementById('food-container');
+            const drinkEl = document.getElementById('drink-container');
+
+            const createCard = (item) => `
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col h-full group">
+                    <div class="relative overflow-hidden h-48">
+                        <img src="${item.img}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        <div class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-sm font-bold text-brand-600 shadow-sm">
+                            ${formatRp(item.price)}
+                        </div>
+                    </div>
+                    <div class="p-4 flex flex-col flex-1">
+                        <h3 class="font-bold text-gray-900 text-lg mb-1 leading-tight">${item.name}</h3>
+                        <p class="text-sm text-gray-500 mb-4 flex-1 line-clamp-2">${item.desc}</p>
+                        <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})" class="w-full py-2.5 bg-brand-50 text-brand-600 font-bold rounded-xl hover:bg-brand-600 hover:text-white transition flex items-center justify-center gap-2 border border-brand-100">
+                            <i class="fas fa-plus"></i> Tambah
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            foodEl.innerHTML = foods.map(createCard).join('');
+            drinkEl.innerHTML = drinks.map(createCard).join('');
+        }
+
+        // Cart Functions
+        function toggleCart() {
+            const modal = document.getElementById('cart-modal');
+            const overlay = document.getElementById('cart-overlay');
+            
+            if (modal.classList.contains('translate-x-full')) {
+                // Open
+                modal.classList.remove('translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                // Close
+                modal.classList.add('translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function addToCart(id, name, price) {
+            const existing = cart.find(item => item.id === id);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({ id, name, price, qty: 1 });
+            }
+            updateCartUI();
+            
+            // Optional: Show quick toast notification
+            showToast(`${name} ditambahkan!`);
+        }
+
+        function updateQuantity(id, delta) {
+            const item = cart.find(item => item.id === id);
+            if (item) {
+                item.qty += delta;
+                if (item.qty <= 0) {
+                    cart = cart.filter(i => i.id !== id);
+                }
+            }
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const container = document.getElementById('cart-items-container');
+            const emptyMsg = document.getElementById('empty-cart-msg');
+            const badge = document.getElementById('cart-badge');
+            const totalEl = document.getElementById('cart-total');
+            const btnPrintGroup = document.getElementById('btn-print-group');
+
+            // Calculate totals
+            let totalQty = 0;
+            let totalPrice = 0;
+            let html = '';
+
+            cart.forEach(item => {
+                totalQty += item.qty;
+                const subtotal = item.price * item.qty;
+                totalPrice += subtotal;
+
+                html += `
+                    <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex gap-3 items-center">
+                        <div class="flex-1">
+                            <h4 class="font-bold text-gray-800 text-sm">${item.name}</h4>
+                            <div class="text-brand-600 font-semibold text-sm">${formatRp(item.price)}</div>
+                        </div>
+                        <div class="flex items-center gap-2 bg-gray-50 rounded-lg p-1 border border-gray-200">
+                            <button onclick="updateQuantity('${item.id}', -1)" class="w-6 h-6 flex items-center justify-center bg-white rounded shadow-sm text-gray-600 hover:text-brand-600 transition"><i class="fas fa-minus text-xs"></i></button>
+                            <span class="w-4 text-center text-sm font-bold">${item.qty}</span>
+                            <button onclick="updateQuantity('${item.id}', 1)" class="w-6 h-6 flex items-center justify-center bg-white rounded shadow-sm text-gray-600 hover:text-brand-600 transition"><i class="fas fa-plus text-xs"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Update DOM
+            if (cart.length > 0) {
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '';
+                container.appendChild(emptyMsg);
+            }
+
+            // Update Badge
+            if (totalQty > 0) {
+                badge.textContent = totalQty;
+                badge.classList.remove('hidden');
+                emptyMsg.classList.add('hidden');
+                btnPrintGroup.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+                emptyMsg.classList.remove('hidden');
+                btnPrintGroup.classList.add('hidden');
+            }
+
+            // Update Total
+            totalEl.textContent = formatRp(totalPrice);
+        }
+
+        // WA Chat Box Logic
+        function toggleWaBox() {
+            const box = document.getElementById('wa-chat-box');
+            if (box.classList.contains('hidden')) {
+                box.classList.remove('hidden');
+                box.classList.add('slide-up');
+                document.getElementById('wa-message-input').focus();
+            } else {
+                box.classList.add('hidden');
+                box.classList.remove('slide-up');
+            }
+        }
+
+        function sendCustomWaMessage() {
+            const input = document.getElementById('wa-message-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const url = `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
+            input.value = '';
+            toggleWaBox();
+        }
+
+        // Allow Enter key to send message
+        document.getElementById('wa-message-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendCustomWaMessage();
+            }
+        });
+
+        // Checkout to WhatsApp
+        function checkoutToWhatsApp() {
+            if (cart.length === 0) {
+                showAlert('Keranjang Kosong', 'Silakan pilih menu atau paket terlebih dahulu.');
+                return;
+            }
+
+            const meja = document.getElementById('nomor-meja').value.trim() || 'Bawa Pulang / Tidak ada';
+
+            let text = `Halo Admin *Kantin ${CAMPUS_NAME}* 👋\n`;
+            text += `Meja: *${meja}*\n\n`;
+            text += `Saya ingin memesan:\n`;
+            
+            let total = 0;
+
+            cart.forEach((item, index) => {
+                let subtotal = item.price * item.qty;
+                total += subtotal;
+                text += `${index + 1}. *${item.name}*\n`;
+                text += `   ${item.qty} x ${formatRp(item.price)} = ${formatRp(subtotal)}\n`;
+            });
+
+            text += `\n*Total Pembayaran: ${formatRp(total)}*\n\n`;
+            text += `Mohon segera diproses ya. Terima kasih! 🙏`;
+
+            const encodedText = encodeURIComponent(text);
+            const waUrl = `https://wa.me/${ADMIN_PHONE}?text=${encodedText}`;
+            
+            window.open(waUrl, '_blank');
+        }
+
+        function orderPackage(pkgName) {
+            let text = `Halo Admin *Kantin ${CAMPUS_NAME}* 👋\n\n`;
+            text += `Saya tertarik untuk berlangganan makan bulanan:\n`;
+            text += `*Paket ${pkgName}*\n\n`;
+            text += `Mohon info cara pembayaran dan ketentuannya ya. Terima kasih! 🙏`;
+
+            const encodedText = encodeURIComponent(text);
+            const waUrl = `https://wa.me/${ADMIN_PHONE}?text=${encodedText}`;
+            
+            window.open(waUrl, '_blank');
+        }
+
+        // Prepare Data Struk
+        function prepareReceiptData() {
+            const orderId = 'UTM-' + Date.now().toString().slice(-6);
+            const date = new Date().toLocaleString('id-ID');
+            const meja = document.getElementById('nomor-meja').value.trim() || 'Bawa Pulang';
+
+            document.getElementById('print-order-id').textContent = orderId;
+            document.getElementById('print-date').textContent = date;
+            document.getElementById('print-meja').textContent = meja;
+
+            const tbody = document.getElementById('print-items-body');
+            let total = 0;
+            
+            tbody.innerHTML = cart.map(item => {
+                let subtotal = item.price * item.qty;
+                total += subtotal;
+                return `
+                    <tr>
+                        <td style="padding: 3px 0;">
+                            <div style="font-weight: bold;">${item.name}</div>
+                            <div style="font-size: 11px; color: #444;">@ ${formatRp(item.price)}</div>
+                        </td>
+                        <td style="text-align: center; padding: 3px 0;">x${item.qty}</td>
+                        <td style="text-align: right; padding: 3px 0;">${formatRp(subtotal)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('print-total-price').textContent = formatRp(total);
+            return orderId;
+        }
+
+        // Print Receipt Logic
+        function printReceipt() {
+            if (cart.length === 0) return;
+            prepareReceiptData();
+            window.print();
+        }
+
+        // Download Receipt Logic (PDF - Menggunakan Teknik Template String / Tidak Blank)
+        function downloadReceipt() {
+            if (cart.length === 0) return;
+            const orderId = prepareReceiptData();
+            
+            // Ambil HTML struk murni (Hanya bagian di dalam <div id="print-receipt">)
+            const receiptContent = document.getElementById('print-receipt').innerHTML;
+            
+            // Buat HTML Wrapper baru dengan style inline utuh agar tidak terpengaruh style website
+            const htmlString = `
+                <div style="width: 290px; padding: 10px; font-family: 'Courier New', Courier, monospace; background-color: #ffffff; color: #000000;">
+                    ${receiptContent}
+                </div>
+            `;
+
+            // Konfigurasi PDF untuk format Struk Thermal (78mm width x flexible height)
+            const opt = {
+                margin:       1, // margin 1mm
+                filename:     `Struk_Pesanan_${orderId}.pdf`,
+                image:        { type: 'jpeg', quality: 1 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                jsPDF:        { unit: 'mm', format: [78, 160], orientation: 'portrait' } 
+            };
+
+            showToast("Menyiapkan PDF Struk...");
+            
+            // Eksekusi dari HTML String, BUKAN dari elemen DOM di layar
+            html2pdf().set(opt).from(htmlString).save().then(() => {
+                showToast("Struk berhasil di-download!");
+            }).catch(err => {
+                console.error("PDF Error: ", err);
+                showAlert('Error', 'Gagal mendownload struk.');
+            });
+        }
+
+        // Custom UI Utilities
+        function showAlert(title, message) {
+            // Create a simple custom alert modal
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'fixed inset-0 bg-black/50 z-[100] flex items-center justify-center backdrop-blur-sm px-4';
+            alertDiv.innerHTML = `
+                <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl transform scale-95 transition-transform duration-200">
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">${title}</h3>
+                    <p class="text-gray-600 mb-6">${message}</p>
+                    <button onclick="this.closest('.fixed').remove()" class="w-full py-2.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition">Mengerti</button>
+                </div>
+            `;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.querySelector('div').classList.remove('scale-95'), 10);
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-xl z-50 transition-opacity duration-300 opacity-0 flex items-center gap-2 text-sm font-medium';
+            toast.innerHTML = `<i class="fas fa-check-circle text-green-400"></i> ${message}`;
+            document.body.appendChild(toast);
+            
+            // Fade in
+            setTimeout(() => toast.classList.remove('opacity-0'), 10);
+            
+            // Fade out and remove
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
+        // Initialize App
+        window.onload = () => {
+            renderProducts();
+        };
+    </script>
+</body>
+</html>
