@@ -265,15 +265,21 @@
             </button>
         </div>
         
-        <div id="cart-items-container" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-            <!-- Cart items injected here -->
+        <div class="flex-1 overflow-y-auto p-4 bg-gray-50">
             <div id="empty-cart-msg" class="text-center text-gray-500 mt-10">
                 <i class="fas fa-basket-shopping text-4xl mb-3 text-gray-300"></i>
                 <p>Keranjang masih kosong</p>
             </div>
+            <div id="cart-items-container" class="space-y-4">
+                <!-- Cart items injected here -->
+            </div>
         </div>
 
         <div class="p-4 border-t bg-white">
+            <div class="mb-3">
+                <label for="nama-pemesan" class="block text-sm font-semibold text-gray-700 mb-1">Nama Pemesan</label>
+                <input type="text" id="nama-pemesan" placeholder="Masukkan nama Anda" class="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 bg-gray-50">
+            </div>
             <div class="mb-4">
                 <label for="nomor-meja" class="block text-sm font-semibold text-gray-700 mb-1">Nomor Meja</label>
                 <input type="text" id="nomor-meja" placeholder="Cth: 12 (Kosongkan jika dibawa pulang)" class="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 bg-gray-50">
@@ -299,41 +305,45 @@
     </div>
 
     <!-- Printable Receipt Area (Hidden entirely except when printing) -->
-    <div id="print-receipt" class="hidden" style="font-family: 'Courier New', Courier, monospace; width: 300px; margin: 0 auto; color: black; background: white; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 15px;">
-            <h2 style="margin: 0; font-size: 20px; font-weight: bold;">UTM FOOD</h2>
-            <p style="margin: 3px 0; font-size: 12px;">Kantin Univ. Teknologi Mataram</p>
-            <p style="margin: 0; font-size: 12px;">Jl. Pendidikan, Mataram</p>
-            <p style="margin: 0; font-size: 12px;">Telp: +62 819-3493-1153</p>
-        </div>
-        <div style="border-top: 1px dashed #000; margin-bottom: 10px;"></div>
-        <div style="margin-bottom: 10px; font-size: 12px;">
-            <p style="margin: 2px 0;">Tgl  : <span id="print-date"></span></p>
-            <p style="margin: 2px 0;">No   : <span id="print-order-id"></span></p>
-            <p style="margin: 2px 0;">Meja : <span id="print-meja">-</span></p>
-        </div>
-        <div style="border-top: 1px dashed #000; margin-bottom: 10px;"></div>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 12px;">
-            <thead>
-                <tr>
-                    <th style="text-align: left; padding-bottom: 5px;">Item</th>
-                    <th style="text-align: center; padding-bottom: 5px;">Qty</th>
-                    <th style="text-align: right; padding-bottom: 5px;">Harga</th>
-                </tr>
-            </thead>
-            <tbody id="print-items-body">
-                <!-- Print items injected here -->
-            </tbody>
-        </table>
-        <div style="border-top: 1px dashed #000; margin-bottom: 10px;"></div>
-        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 14px;">
-            <span>TOTAL</span>
-            <span id="print-total-price">Rp 0</span>
-        </div>
-        <div style="border-top: 1px dashed #000; margin-top: 10px; margin-bottom: 15px;"></div>
-        <div style="text-align: center; font-size: 11px;">
-            <p style="margin: 2px 0;">Terima Kasih Atas Pesanan Anda!</p>
-            <p style="margin: 2px 0;">Powered by UTM Food</p>
+    <!-- PERBAIKAN: Bungkus dengan div wrapper khusus PDF untuk menghindari masalah rendering off-screen -->
+    <div id="pdf-container" style="position: absolute; left: -9999px; top: -9999px; background: white;">
+        <div id="print-receipt" style="font-family: 'Courier New', Courier, monospace; width: 300px; max-width: 300px; color: black; background: white; padding: 20px; box-sizing: border-box; overflow: hidden;">
+            <div style="text-align: center; margin-bottom: 15px;">
+                <h2 style="margin: 0; font-size: 20px; font-weight: bold;">UTM FOOD</h2>
+                <p style="margin: 3px 0; font-size: 12px;">Kantin Univ. Teknologi Mataram</p>
+                <p style="margin: 0; font-size: 12px;">Jl. Pendidikan, Mataram</p>
+                <p style="margin: 0; font-size: 12px;">Telp: +62 819-3493-1153</p>
+            </div>
+            <div style="border-top: 1px dashed #000; margin-bottom: 10px;"></div>
+            <div style="margin-bottom: 10px; font-size: 12px;">
+                <p style="margin: 2px 0;">Tgl  : <span id="print-date"></span></p>
+                <p style="margin: 2px 0;">No   : <span id="print-order-id"></span></p>
+                <p style="margin: 2px 0;">Nama : <span id="print-nama">-</span></p>
+                <p style="margin: 2px 0;">Meja : <span id="print-meja">-</span></p>
+            </div>
+            <div style="border-top: 1px dashed #000; margin-bottom: 10px;"></div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 12px; table-layout: fixed;">
+                <thead>
+                    <tr>
+                        <th style="text-align: left; padding-bottom: 5px; width: 50%;">Item</th>
+                        <th style="text-align: center; padding-bottom: 5px; width: 15%;">Qty</th>
+                        <th style="text-align: right; padding-bottom: 5px; width: 35%;">Harga</th>
+                    </tr>
+                </thead>
+                <tbody id="print-items-body">
+                    <!-- Print items injected here -->
+                </tbody>
+            </table>
+            <div style="border-top: 1px dashed #000; margin-bottom: 10px;"></div>
+            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 14px;">
+                <span>TOTAL</span>
+                <span id="print-total-price">Rp 0</span>
+            </div>
+            <div style="border-top: 1px dashed #000; margin-top: 10px; margin-bottom: 15px;"></div>
+            <div style="text-align: center; font-size: 11px;">
+                <p style="margin: 2px 0;">Terima Kasih Atas Pesanan Anda!</p>
+                <p style="margin: 2px 0;">Powered by UTM Food</p>
+            </div>
         </div>
     </div>
 
@@ -382,7 +392,7 @@
     <script>
         // Data Makanan (Menggunakan gambar asli dari Unsplash)
         const foods = [
-            { id: 'f1', name: 'Nasi Goreng Spesial', price: 15000, img: 'https://images.unsplash.com/photo-1603048297172-c92544798d5e?q=80&w=400&auto=format&fit=crop', desc: 'Dengan telur mata sapi dan ayam suwir' },
+            { id: 'f1', name: 'Nasi Goreng Spesial', price: 15000, img: 'https://buckets.sasa.co.id/v1/AUTH_Assets/Assets/p/website/medias/page_medias/resep_nasi_goreng_spesial.jpg', desc: 'Dengan telur mata sapi dan ayam suwir' },
             { id: 'f2', name: 'Ayam Geprek Sambal Korek', price: 18000, img: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=400&auto=format&fit=crop', desc: 'Pedas nampol + Nasi putih + Lalapan' },
             { id: 'f3', name: 'Mie Nyemek Pedas', price: 12000, img: 'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?q=80&w=400&auto=format&fit=crop', desc: 'Mie instan rebus bumbu spesial kental' },
             { id: 'f4', name: 'Soto Ayam Lamongan', price: 15000, img: 'https://images.unsplash.com/photo-1572656631137-7935297eff55?q=80&w=400&auto=format&fit=crop', desc: 'Segar dengan koya khas' },
@@ -516,19 +526,18 @@
                 container.innerHTML = html;
             } else {
                 container.innerHTML = '';
-                container.appendChild(emptyMsg);
             }
 
             // Update Badge
             if (totalQty > 0) {
                 badge.textContent = totalQty;
                 badge.classList.remove('hidden');
-                emptyMsg.classList.add('hidden');
-                btnPrintGroup.classList.remove('hidden');
+                if (emptyMsg) emptyMsg.classList.add('hidden');
+                if (btnPrintGroup) btnPrintGroup.classList.remove('hidden');
             } else {
                 badge.classList.add('hidden');
-                emptyMsg.classList.remove('hidden');
-                btnPrintGroup.classList.add('hidden');
+                if (emptyMsg) emptyMsg.classList.remove('hidden');
+                if (btnPrintGroup) btnPrintGroup.classList.add('hidden');
             }
 
             // Update Total
@@ -574,9 +583,11 @@
                 return;
             }
 
+            const nama = document.getElementById('nama-pemesan').value.trim() || 'Hamba Allah';
             const meja = document.getElementById('nomor-meja').value.trim() || 'Bawa Pulang / Tidak ada';
 
             let text = `Halo Admin *Kantin ${CAMPUS_NAME}* 👋\n`;
+            text += `Nama: *${nama}*\n`;
             text += `Meja: *${meja}*\n\n`;
             text += `Saya ingin memesan:\n`;
             
@@ -614,10 +625,12 @@
         function prepareReceiptData() {
             const orderId = 'UTM-' + Date.now().toString().slice(-6);
             const date = new Date().toLocaleString('id-ID');
+            const nama = document.getElementById('nama-pemesan').value.trim() || 'Tidak ada nama';
             const meja = document.getElementById('nomor-meja').value.trim() || 'Bawa Pulang';
 
             document.getElementById('print-order-id').textContent = orderId;
             document.getElementById('print-date').textContent = date;
+            document.getElementById('print-nama').textContent = nama;
             document.getElementById('print-meja').textContent = meja;
 
             const tbody = document.getElementById('print-items-body');
@@ -628,12 +641,12 @@
                 total += subtotal;
                 return `
                     <tr>
-                        <td style="padding: 3px 0;">
+                        <td style="padding: 3px 0; word-wrap: break-word;">
                             <div style="font-weight: bold;">${item.name}</div>
                             <div style="font-size: 11px; color: #444;">@ ${formatRp(item.price)}</div>
                         </td>
-                        <td style="text-align: center; padding: 3px 0;">x${item.qty}</td>
-                        <td style="text-align: right; padding: 3px 0;">${formatRp(subtotal)}</td>
+                        <td style="text-align: center; padding: 3px 0; vertical-align: top;">x${item.qty}</td>
+                        <td style="text-align: right; padding: 3px 0; vertical-align: top;">${formatRp(subtotal)}</td>
                     </tr>
                 `;
             }).join('');
@@ -646,7 +659,24 @@
         function printReceipt() {
             if (cart.length === 0) return;
             prepareReceiptData();
+            
+            // Tampilkan sementara elemen print untuk dicetak (browser print handling)
+            const printContent = document.getElementById('print-receipt');
+            
+            // Backup body asli
+            const originalContents = document.body.innerHTML;
+            
+            // Set body hanya ke struk
+            document.body.innerHTML = printContent.outerHTML;
+            
+            // Print!
             window.print();
+            
+            // Kembalikan body asli
+            document.body.innerHTML = originalContents;
+            
+            // Pastikan event listener terpasang kembali (karena innerHTML meresetnya)
+            location.reload(); 
         }
 
         // Download Receipt Logic (PDF - Menggunakan Teknik Template String / Tidak Blank)
@@ -654,29 +684,25 @@
             if (cart.length === 0) return;
             const orderId = prepareReceiptData();
             
-            // Ambil HTML struk murni (Hanya bagian di dalam <div id="print-receipt">)
-            const receiptContent = document.getElementById('print-receipt').innerHTML;
+            // Ambil elemen yang sudah dirender dengan data
+            const element = document.getElementById('print-receipt');
             
-            // Buat HTML Wrapper baru dengan style inline utuh agar tidak terpengaruh style website
-            const htmlString = `
-                <div style="width: 290px; padding: 10px; font-family: 'Courier New', Courier, monospace; background-color: #ffffff; color: #000000;">
-                    ${receiptContent}
-                </div>
-            `;
-
-            // Konfigurasi PDF untuk format Struk Thermal (78mm width x flexible height)
+            // Konfigurasi PDF untuk format Struk Thermal (80mm width)
+            // Tinggi otomatis menyesuaikan isi karena height undefined di unit 'mm' 
             const opt = {
-                margin:       1, // margin 1mm
+                margin:       [2, 2, 2, 2], // Margin atas, kiri, bawah, kanan (mm)
                 filename:     `Struk_Pesanan_${orderId}.pdf`,
                 image:        { type: 'jpeg', quality: 1 },
-                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-                jsPDF:        { unit: 'mm', format: [78, 160], orientation: 'portrait' } 
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                // Format: array [lebar, tinggi]. Gunakan panjang misal 200mm untuk mengakomodasi daftar belanja.
+                // Jika isinya sedikit, tetap akan 1 halaman di layar PDF/Print, karena layout PDF vertikal
+                jsPDF:        { unit: 'mm', format: [80, 200], orientation: 'portrait' } 
             };
 
             showToast("Menyiapkan PDF Struk...");
             
-            // Eksekusi dari HTML String, BUKAN dari elemen DOM di layar
-            html2pdf().set(opt).from(htmlString).save().then(() => {
+            // Eksekusi dari Elemen DOM yang disembunyikan via parent (pdf-container)
+            html2pdf().set(opt).from(element).save().then(() => {
                 showToast("Struk berhasil di-download!");
             }).catch(err => {
                 console.error("PDF Error: ", err);
